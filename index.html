@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Mission Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1abc9c;
+            --primary-dark: #16a085;
+            --secondary: #3498db;
+            --secondary-dark: #217dbb;
+            --warning: #f39c12;
+            --warning-dark: #d68910;
+            --danger: #e74c3c;
+            --danger-dark: #c0392b;
+            --dark-bg: #0f2027;
+            --mid-bg: #203a43;
+            --light-bg: #2c5364;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --text-light: #ffffff;
+            --text-muted: #b0bec5;
+            --border-radius: 16px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg), var(--mid-bg), var(--light-bg));
+            color: var(--text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #1abc9c, #3498db);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            color: var(--primary);
+        }
+
+        .card-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .waypoint-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.2);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .btn {
+            padding: 18px 15px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn i {
+            font-size: 1.3rem;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-send:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(26, 188, 156, 0.4);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: linear-gradient(135deg, var(--secondary-dark), var(--secondary));
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-rtl {
+            background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+            color: white;
+        }
+
+        .btn-rtl:hover {
+            background: linear-gradient(135deg, var(--warning-dark), var(--warning));
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: linear-gradient(135deg, var(--danger-dark), var(--danger));
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .status-container {
+            margin-top: 30px;
+        }
+
+        .status-box {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            text-align: center;
+            border-left: 5px solid var(--primary);
+            box-shadow: var(--box-shadow);
+        }
+
+        .status-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .waypoint-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .buttons-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .btn {
+                padding: 16px 12px;
+                font-size: 1rem;
+            }
+            
+            .status-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 10px;
+            }
+            
+            .waypoint-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .buttons-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .btn {
+                padding: 18px 15px;
+            }
+            
+            .card-header h3 {
+                font-size: 1.3rem;
+            }
+            
+            input {
+                padding: 14px 14px 14px 40px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                font-size: 0.9rem;
+            }
+            
+            .btn i {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Animation for status updates */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .status-updating {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Loading indicator for buttons */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-drone"></i> Drone Mission Planner</h1>
+            <p>Plan and execute autonomous drone missions with precision waypoint control</p>
+        </div>
+
+        <!-- Waypoint Cards -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Waypoint 1</h3>
+            </div>
+            <div class="waypoint-grid">
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Latitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lat1" placeholder="e.g., 40.7128">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Longitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lon1" placeholder="e.g., -74.0060">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-mountain"></i> Altitude (m)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-arrow-up"></i>
+                        <input type="number" id="alt1" value="20" placeholder="Altitude in meters">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Waypoint 2</h3>
+            </div>
+            <div class="waypoint-grid">
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Latitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lat2" placeholder="e.g., 40.7128">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Longitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lon2" placeholder="e.g., -74.0060">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-mountain"></i> Altitude (m)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-arrow-up"></i>
+                        <input type="number" id="alt2" value="20" placeholder="Altitude in meters">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Waypoint 3</h3>
+            </div>
+            <div class="waypoint-grid">
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Latitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lat3" placeholder="e.g., 40.7128">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Longitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lon3" placeholder="e.g., -74.0060">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-mountain"></i> Altitude (m)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-arrow-up"></i>
+                        <input type="number" id="alt3" value="20" placeholder="Altitude in meters">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Waypoint 4</h3>
+            </div>
+            <div class="waypoint-grid">
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Latitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lat4" placeholder="e.g., 40.7128">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-globe-americas"></i> Longitude</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-pin"></i>
+                        <input type="number" step="any" id="lon4" placeholder="e.g., -74.0060">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-mountain"></i> Altitude (m)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-arrow-up"></i>
+                        <input type="number" id="alt4" value="20" placeholder="Altitude in meters">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="buttons-grid">
+            <button class="btn btn-send" onclick="sendMission()">
+                <i class="fas fa-paper-plane"></i> Send Mission
+            </button>
+            <button class="btn btn-start" onclick="startMission()">
+                <i class="fas fa-play-circle"></i> Start Mission
+            </button>
+            <button class="btn btn-rtl" onclick="rtlMission()">
+                <i class="fas fa-home"></i> Return to Launch
+            </button>
+            <button class="btn btn-stop" onclick="stopMission()">
+                <i class="fas fa-stop-circle"></i> Emergency Stop
+            </button>
+        </div>
+
+        <!-- Status Display -->
+        <div class="status-container">
+            <div class="status-box">
+                <div class="status-label">Current Mission Status</div>
+                <div class="status-value" id="statusBox">
+                    <i class="fas fa-sync-alt fa-spin" style="margin-right: 10px;"></i> Waiting for connection...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getDatabase, ref, set, update, onValue }
+            from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCbIyCZV2ppiAP6rDExKP86fQePcgYQc5I",
+            authDomain: "drone-986f4.firebaseapp.com",
+            databaseURL: "https://drone-986f4-default-rtdb.firebaseio.com",
+            projectId: "drone-986f4",
+            storageBucket: "drone-986f4.firebasestorage.app",
+            messagingSenderId: "810516681904",
+            appId: "1:810516681904:web:4ff8eebdeec0b594f95775",
+            measurementId: "G-B6QBDVGNPF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Button click handlers with visual feedback
+        window.sendMission = function () {
+            const btn = document.querySelector('.btn-send');
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('btn-loading');
+            
+            setTimeout(() => {
+                const waypoints = {
+                    wp1: { lat: parseFloat(lat1.value), lon: parseFloat(lon1.value), alt: parseFloat(alt1.value) },
+                    wp2: { lat: parseFloat(lat2.value), lon: parseFloat(lon2.value), alt: parseFloat(alt2.value) },
+                    wp3: { lat: parseFloat(lat3.value), lon: parseFloat(lon3.value), alt: parseFloat(alt3.value) },
+                    wp4: { lat: parseFloat(lat4.value), lon: parseFloat(lon4.value), alt: parseFloat(alt4.value) }
+                };
+
+                set(ref(db, "mission/waypoints"), waypoints)
+                    .then(() => {
+                        showNotification("Waypoints uploaded successfully!", "success");
+                        updateStatus("Waypoints Ready");
+                    })
+                    .catch(() => {
+                        showNotification("Failed to upload waypoints", "error");
+                    })
+                    .finally(() => {
+                        btn.classList.remove('btn-loading');
+                        btn.innerHTML = originalHTML;
+                    });
+            }, 800);
+        };
+
+        window.startMission = function () {
+            const btn = document.querySelector('.btn-start');
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('btn-loading');
+            
+            setTimeout(() => {
+                update(ref(db, "mission"), { start: true })
+                    .then(() => {
+                        showNotification("Mission started!", "success");
+                        updateStatus("Mission In Progress");
+                    })
+                    .catch(() => {
+                        showNotification("Failed to start mission", "error");
+                    })
+                    .finally(() => {
+                        btn.classList.remove('btn-loading');
+                        btn.innerHTML = originalHTML;
+                    });
+            }, 800);
+        };
+
+        window.rtlMission = function () {
+            const btn = document.querySelector('.btn-rtl');
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('btn-loading');
+            
+            setTimeout(() => {
+                update(ref(db, "mission"), { rtl: true })
+                    .then(() => {
+                        showNotification("Return to Launch initiated!", "warning");
+                        updateStatus("Returning to Launch");
+                    })
+                    .catch(() => {
+                        showNotification("Failed to initiate RTL", "error");
+                    })
+                    .finally(() => {
+                        btn.classList.remove('btn-loading');
+                        btn.innerHTML = originalHTML;
+                    });
+            }, 800);
+        };
+
+        window.stopMission = function () {
+            if (confirm("Are you sure you want to emergency stop the mission?")) {
+                const btn = document.querySelector('.btn-stop');
+                const originalHTML = btn.innerHTML;
+                btn.classList.add('btn-loading');
+                
+                setTimeout(() => {
+                    update(ref(db, "mission"), { stop: true })
+                        .then(() => {
+                            showNotification("Mission emergency stopped!", "danger");
+                            updateStatus("Emergency Stop Activated");
+                        })
+                        .catch(() => {
+                            showNotification("Failed to stop mission", "error");
+                        })
+                        .finally(() => {
+                            btn.classList.remove('btn-loading');
+                            btn.innerHTML = originalHTML;
+                        });
+                }, 800);
+            }
+        };
+
+        // Real-time status updates
+        const statusRef = ref(db, "mission/status");
+        onValue(statusRef, (snapshot) => {
+            if (snapshot.exists()) {
+                updateStatus(snapshot.val());
+            } else {
+                updateStatus("No status data available");
+            }
+        });
+
+        // Helper functions
+        function updateStatus(statusText) {
+            const statusBox = document.getElementById("statusBox");
+            statusBox.innerHTML = `<i class="fas fa-satellite-dish" style="margin-right: 10px;"></i> ${statusText}`;
+            
+            // Add pulsing animation for active statuses
+            if (statusText.includes("Progress") || statusText.includes("Returning")) {
+                statusBox.classList.add("status-updating");
+            } else {
+                statusBox.classList.remove("status-updating");
+            }
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement("div");
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 600;
+                z-index: 1000;
+                transform: translateX(150%);
+                transition: transform 0.3s ease;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            `;
+            
+            // Set background based on type
+            if (type === "success") notification.style.background = "linear-gradient(135deg, #1abc9c, #16a085)";
+            else if (type === "warning") notification.style.background = "linear-gradient(135deg, #f39c12, #d68910)";
+            else if (type === "danger") notification.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
+            else notification.style.background = "linear-gradient(135deg, #3498db, #217dbb)";
+            
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'danger' ? 'times-circle' : 'info-circle'}" style="margin-right: 10px;"></i> ${message}`;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = "translateX(0)";
+            }, 10);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = "translateX(150%)";
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
