@@ -198,10 +198,9 @@ input:focus{
         <p>Plan and execute autonomous drone missions with precision.</p>
     </div>
 
-    <!-- ---------------- Waypoint Cards ---------------- -->
-    <!-- Repeat structure for WP1–WP4 -->
+    <!-- ---------------- Waypoint 1 (Required) ---------------- -->
     <div class="card">
-        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 1</h3>
+        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 1 (Required)</h3>
         <div class="waypoint-grid">
             <div class="input-group">
                 <label>Latitude</label>
@@ -224,9 +223,9 @@ input:focus{
         </div>
     </div>
 
-    <!-- Waypoint 2 -->
+    <!-- ---------------- Waypoint 2 ---------------- -->
     <div class="card">
-        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 2</h3>
+        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 2 (Optional)</h3>
         <div class="waypoint-grid">
             <div class="input-group">
                 <label>Latitude</label>
@@ -249,9 +248,9 @@ input:focus{
         </div>
     </div>
 
-    <!-- Waypoint 3 -->
+    <!-- ---------------- Waypoint 3 ---------------- -->
     <div class="card">
-        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 3</h3>
+        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 3 (Optional)</h3>
         <div class="waypoint-grid">
             <div class="input-group">
                 <label>Latitude</label>
@@ -274,9 +273,9 @@ input:focus{
         </div>
     </div>
 
-    <!-- Waypoint 4 -->
+    <!-- ---------------- Waypoint 4 ---------------- -->
     <div class="card">
-        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 4</h3>
+        <h3><i class="fas fa-map-marker-alt"></i> Waypoint 4 (Optional)</h3>
         <div class="waypoint-grid">
             <div class="input-group">
                 <label>Latitude</label>
@@ -336,34 +335,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* ----------------------- VALIDATION + MISSION UPLOAD ----------------------- */
+/* ----------------------- OPTIONAL WAYPOINT HANDLER ----------------------- */
+function safeVal(input) {
+    return input.value.trim() === "" ? "" : parseFloat(input.value);
+}
+
+/* ----------------------- SEND MISSION ----------------------- */
 window.sendMission = function () {
 
     const btn = document.querySelector('.btn-send');
     const originalHTML = btn.innerHTML;
 
-    const inputs = [
-        lat1, lon1, alt1,
-        lat2, lon2, alt2,
-        lat3, lon3, alt3,
-        lat4, lon4, alt4
-    ];
-
-    // Validate inputs
-    for (let i = 0; i < inputs.length; i++) {
-        if (inputs[i].value.trim() === "" || isNaN(parseFloat(inputs[i].value))) {
-            showNotification("Please fill all fields with valid numbers!", "danger");
-            return;
-        }
+    // --- VALIDATE WP1 REQUIRED ---
+    if (
+        lat1.value.trim() === "" ||
+        lon1.value.trim() === "" ||
+        alt1.value.trim() === "" ||
+        isNaN(parseFloat(lat1.value)) ||
+        isNaN(parseFloat(lon1.value)) ||
+        isNaN(parseFloat(alt1.value))
+    ) {
+        showNotification("Please enter valid Latitude, Longitude and Altitude for Waypoint 1!", "danger");
+        return;
     }
 
     btn.classList.add("btn-loading");
 
     const waypoints = {
         wp1: { lat: parseFloat(lat1.value), lon: parseFloat(lon1.value), alt: parseFloat(alt1.value) },
-        wp2: { lat: parseFloat(lat2.value), lon: parseFloat(lon2.value), alt: parseFloat(alt2.value) },
-        wp3: { lat: parseFloat(lat3.value), lon: parseFloat(lon3.value), alt: parseFloat(alt3.value) },
-        wp4: { lat: parseFloat(lat4.value), lon: parseFloat(lon4.value), alt: parseFloat(alt4.value) }
+        wp2: { lat: safeVal(lat2), lon: safeVal(lon2), alt: safeVal(alt2) },
+        wp3: { lat: safeVal(lat3), lon: safeVal(lon3), alt: safeVal(alt3) },
+        wp4: { lat: safeVal(lat4), lon: safeVal(lon4), alt: safeVal(alt4) }
     };
 
     set(ref(db, "mission/waypoints"), waypoints)
@@ -371,16 +373,14 @@ window.sendMission = function () {
             showNotification("Waypoints Uploaded Successfully!", "success");
             updateStatus("Waypoints Ready");
         })
-        .catch(err => {
-            showNotification("Upload Failed: " + err.message, "danger");
-        })
+        .catch(err => showNotification("Upload Failed: " + err.message, "danger"))
         .finally(() => {
             btn.classList.remove("btn-loading");
             btn.innerHTML = originalHTML;
         });
 };
 
-/* ----------------------- START MISSION ----------------------- */
+/* ----------------------- START ----------------------- */
 window.startMission = function () {
     update(ref(db, "mission"), { start: true });
     showNotification("Mission Started!", "success");
@@ -401,13 +401,13 @@ window.stopMission = function () {
     updateStatus("Stopped");
 };
 
-/* ----------------------- LIVE STATUS ----------------------- */
+/* ----------------------- LIVE STATUS LISTENER ----------------------- */
 const statusRef = ref(db, "mission/status");
 onValue(statusRef, (snapshot) => {
     if (snapshot.exists()) updateStatus(snapshot.val());
 });
 
-/* ----------------------- HELPER FUNCTIONS ----------------------- */
+/* ----------------------- HELPER ----------------------- */
 function updateStatus(text) {
     const box = document.getElementById("statusBox");
     box.innerHTML = `<i class="fas fa-satellite"></i> ${text}`;
