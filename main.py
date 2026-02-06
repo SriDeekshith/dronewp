@@ -1,18 +1,43 @@
-from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
+from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 import math
-import socket
 import argparse
 import geopy.distance
-import serial
-import numpy as np
 import time
 import firebase_admin
-from firebase_admin import db,credentials
-import random
+from firebase_admin import db, credentials
 
-import RPi.GPIO as GPIO
-from time import sleep
+# ---------- CAMERA PREVIEW IMPORT ----------
+import cv2
+
+# ---------- CAMERA PREVIEW FUNCTION ----------
+def start_camera_preview():
+    cap = cv2.VideoCapture(0)
+
+    cap.set(3, 1280)   # width
+    cap.set(4, 720)    # height
+
+    if not cap.isOpened():
+        print("Camera not detected!")
+        return
+
+    print("Camera preview started... Press 'q' to quit.")
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Failed to grab frame")
+            break
+
+        cv2.imshow("Logitech Camera Preview", frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    print("Camera preview stopped.")
+
 
 # -------------------- FIREBASE --------------------
 cred = credentials.Certificate("dronecred.json")
@@ -88,37 +113,6 @@ def goto_location(to_lat, to_lon):
         time.sleep(1)
 
 
-def servo():
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(11, GPIO.OUT)
-    GPIO.setup(13, GPIO.OUT)
-
-    p1 = GPIO.PWM(11, 50)
-    p2 = GPIO.PWM(13, 50)
-
-    p1.start(0)
-    p2.start(0)
-
-    try:
-        p1.ChangeDutyCycle(3)
-        sleep(5)
-        p2.ChangeDutyCycle(3)
-        sleep(20)
-
-        p2.ChangeDutyCycle(12)
-        sleep(3)
-        p1.ChangeDutyCycle(12)
-        sleep(1)
-
-    except KeyboardInterrupt:
-        pass
-
-    finally:
-        p1.stop()
-        p2.stop()
-        GPIO.cleanup()
-
-
 # -------------------- MAIN PROGRAM --------------------
 vehicle = connectMyCopter()
 
@@ -148,8 +142,6 @@ for wp_name, wp in waypoints.items():
     vehicle.mode = VehicleMode("LAND")
     time.sleep(30)
 
-    servo()
-
     print(f"Taking off again from {wp_name}...")
     arm_and_takeoff(ht)
     time.sleep(2)
@@ -161,3 +153,6 @@ time.sleep(3)
 
 vehicle.mode = VehicleMode("LAND")
 print("\nMission Completed.\n")
+
+# ----------- START CAMERA PREVIEW AFTER MISSION -----------
+start_camera_preview()
