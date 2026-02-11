@@ -169,25 +169,19 @@ def wait_until_touchdown():
 #                 SAFE DESCENT (STAY ARMED)
 # ==============================================================
 def descend_and_stay_armed():
+    print("⬇ Switching to LAND mode…")
+    vehicle.mode = VehicleMode("LAND")
+    time.sleep(1)
 
-    print("⬇ Descending close to ground…")
+    print("Landing… waiting for drone to reach ground…")
 
-    target = LocationGlobalRelative(
-        vehicle.location.global_relative_frame.lat,
-        vehicle.location.global_relative_frame.lon,
-        0.25
-    )
+    while vehicle.location.global_relative_frame.alt > 0.20:
+        print(" Alt:", vehicle.location.global_relative_frame.alt)
+        time.sleep(0.2)
 
-    vehicle.simple_goto(target, groundspeed=0.4)
-
-    # Wait for touchdown (SAFE)
-    wait_until_touchdown()
-
-    print("✔ Drone on ground (armed). Waiting 10 sec...")
+    print("✔ Touchdown detected.")
+    print("⏳ Holding on ground for 10 seconds (armed)…")
     time.sleep(10)
-    print("✔ REAL LANDING DETECTED (Pixhawk confirmed)")
-    print("⏳ Holding on ground for 10 seconds…")
- # Stay ARMED & wait
 
 
 # ==============================================================
