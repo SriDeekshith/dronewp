@@ -143,39 +143,51 @@ def goto_location(to_lat, to_lon):
 
         time.sleep(1)
 
+def wait_until_touchdown():
+    stable_count = 0
+    
+    while True:
+        alt = vehicle.location.global_relative_frame.alt
+        gs = vehicle.groundspeed
+        
+        print(f" Alt={alt:.2f}  GS={gs:.2f}")
+
+        # Condition for touchdown:
+        if alt < 0.25 and gs < 0.10:
+            stable_count += 1
+        else:
+            stable_count = 0
+
+        # Touchdown confirmed after 10 stable samples (~2 seconds)
+        if stable_count >= 10:
+            print("✔ Touchdown detected!")
+            break
+
+        time.sleep(0.2)
 
 # ==============================================================
 #                 SAFE DESCENT (STAY ARMED)
 # ==============================================================
-
 def descend_and_stay_armed():
 
-    print("⬇ Descending close to ground (stay ARMED)…")
+    print("⬇ Descending close to ground…")
 
     target = LocationGlobalRelative(
         vehicle.location.global_relative_frame.lat,
         vehicle.location.global_relative_frame.lon,
-        0.2   # near ground
+        0.25
     )
 
-    vehicle.simple_goto(target, groundspeed=0.5)
+    vehicle.simple_goto(target, groundspeed=0.4)
 
-    # Wait until altitude low enough
-    while vehicle.location.global_relative_frame.alt > 0.6:
-        print(" Alt:", vehicle.location.global_relative_frame.alt)
-        time.sleep(0.3)
+    # Wait for touchdown (SAFE)
+    wait_until_touchdown()
 
-    print("Near ground… waiting for Pixhawk landing detection…")
-
-    # REAL LANDING detection
-    while not is_really_landed():
-        print(" Waiting for real landing confirmation...")
-        time.sleep(0.2)
-
+    print("✔ Drone on ground (armed). Waiting 10 sec...")
+    time.sleep(10)
     print("✔ REAL LANDING DETECTED (Pixhawk confirmed)")
     print("⏳ Holding on ground for 10 seconds…")
-
-    time.sleep(10)  # Stay ARMED & wait
+ # Stay ARMED & wait
 
 
 # ==============================================================
@@ -184,7 +196,7 @@ def descend_and_stay_armed():
 
 # 1️⃣ Start Camera Thread
 camera_thread = threading.Thread(target=camera_preview_live)
-camera_thread.start()
+#camera_thread.start()
 
 # 2️⃣ Connect to Drone
 vehicle = connectMyCopter()
@@ -249,7 +261,7 @@ for wp_name, wp in waypoints.items():
 #                 STOP CAMERA THREAD
 # ==============================================================
 
-camera_running = False
-camera_thread.join()
+#camera_running = False
+#camera_thread.join()
 
 print("\n🎉 Mission Finished Successfully.\n")
