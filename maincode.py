@@ -223,44 +223,39 @@ for wp_name, wp in waypoints.items():
     goto_location(lat, lon)
     time.sleep(2)
 
-    # DESCEND SAFELY & STAY ARMED
     descend_and_stay_armed()
     time.sleep(1)
+
     vehicle.mode = VehicleMode("GUIDED")
-    time.sleep(3)
+    time.sleep(2)
 
-    print("\n✔ 10 seconds completed on ground.")
-    print("🔐 Attempting auto ARM for RTL…")
-
-    # RE-ARM
+    print("Re-arming...")
     vehicle.armed = True
-    time.sleep(3)
 
     while not vehicle.armed:
         print(" Waiting for ARM…")
-        vehicle.armed = True
         time.sleep(1)
 
-    print("✔ Drone ARMED again.")
+    print("✔ Armed again.")
 
-    # AUTO RTL
-    print("🛬 Switching to RTL mode…")
-    #arm_and_takeoff(takeoff_height)
-    #goto_location(home_lat, home_lon)
-    vehicle.mode = VehicleMode("RTL")
+    # Take off again for next waypoint
+    arm_and_takeoff(takeoff_height)
     time.sleep(2)
-    time.sleep(5)
 
-    # DESCEND SAFELY & STAY ARMED
-    #descend_and_stay_armed()
 
-    # Wait until RTL completes
-    while vehicle.location.global_relative_frame.alt > 1:
-        print(" RTL Alt:", vehicle.location.global_relative_frame.alt)
-        time.sleep(1)
+# ==============================================================
+#                 AFTER ALL WAYPOINTS → RTL
+# ==============================================================
 
-    print("\n🏠 RTL Complete. Drone Landed at Home.")
-    break   # STOP mission after returning home
+print("\nAll waypoints completed → RTL")
+vehicle.mode = VehicleMode("RTL")
+
+while vehicle.location.global_relative_frame.alt > 1:
+    print(" RTL Alt:", vehicle.location.global_relative_frame.alt)
+    time.sleep(1)
+
+print("🏠 RTL Complete. Drone Landed at Home.")
+
 
 
 # ==============================================================
