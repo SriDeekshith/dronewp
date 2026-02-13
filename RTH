@@ -66,8 +66,8 @@ vehicle = connectMyCopter()
 #                 CUSTOM HOME LOCATION (EDIT HERE)
 # ==============================================================
 
-HOME_LAT = 16.565980   # 🔁 CHANGE TO YOUR DESIRED HOME LATITUDE
-HOME_LON = 81.521722   # 🔁 CHANGE TO YOUR DESIRED HOME LONGITUDE
+HOME_LAT = 16.565575   # 🔁 CHANGE TO YOUR DESIRED HOME LATITUDE
+HOME_LON = 81.521656   # 🔁 CHANGE TO YOUR DESIRED HOME LONGITUDE
 RETURN_ALT = 10        # Altitude while returning
 
 
