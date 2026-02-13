@@ -51,7 +51,7 @@ vehicle = connectMyCopter()
 
 HOME_LAT = 16.565980   # 🔁 CHANGE TO YOUR DESIRED HOME LATITUDE
 HOME_LON = 81.521722   # 🔁 CHANGE TO YOUR DESIRED HOME LONGITUDE
-RETURN_ALT = 10        # Altitude while returning
+RETURN_ALT = 30        # Altitude while returning
 
 
 # ==============================================================
@@ -129,7 +129,7 @@ def land_and_wait():
 # 2️⃣ TAKEOFF
 # ==============================================================
 
-takeoff_height = 10
+takeoff_height = 30
 
 print("\n--- 🚀 Starting Mission ---\n")
 
