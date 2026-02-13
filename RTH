@@ -30,6 +30,23 @@ print("Total waypoints:", len(waypoints))
 
 
 # ==============================================================
+# GET ALTITUDE FROM FIREBASE (CONTROL FROM WEBSITE)
+# ==============================================================
+
+settings = db.reference("/mission/settings").get()
+
+if settings and "altitude" in settings:
+    try:
+        takeoff_height = float(settings["altitude"])
+    except:
+        takeoff_height = 10
+else:
+    takeoff_height = 10   # Default fallback
+
+print("🚀 Mission Altitude set to:", takeoff_height)
+
+
+# ==============================================================
 #                 CONNECT TO DRONE
 # ==============================================================
 
