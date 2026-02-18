@@ -125,8 +125,26 @@ arm_and_takeoff(FLIGHT_ALT)
 print("🏪 Flying to Shop...")
 goto_location(SHOP_LAT, SHOP_LON)
 
-print("⏳ Waiting 1 minute at shop...")
+print("🛬 Landing at shop...")
+vehicle.mode = VehicleMode("LAND")
+
+while vehicle.location.global_relative_frame.alt > 0.2:
+    print(" Alt:", vehicle.location.global_relative_frame.alt)
+    time.sleep(1)
+
+print("✔ Landed at shop. Waiting 60 seconds...")
 time.sleep(60)
+
+
+# ==============================================================
+# 🚀 TAKEOFF AGAIN FROM SHOP
+# ==============================================================
+
+print("🚀 Taking off from shop...")
+vehicle.mode = VehicleMode("GUIDED")
+time.sleep(2)
+
+arm_and_takeoff(FLIGHT_ALT)
 
 # ==============================================================
 # 🏠 GO TO CUSTOMER LOCATION (FROM WEBSITE)
